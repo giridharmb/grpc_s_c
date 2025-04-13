@@ -16,6 +16,16 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 protoc --go_out=pkg --go-grpc_out=pkg proto/ping.proto
 ```
 
+#### Setup PostgreSQL & Redis
+
+```
+cd docker_setup;
+```
+
+```
+docker-compose up --build;
+```
+
 # Distributed gRPC Messaging Flow
 
 This project demonstrates a distributed system where virtual machines (clients) send periodic pings to a gRPC server that runs on a Kubernetes (K8s) cluster. The server registers clients, tracks their live status using Redis, persists client data and pending messages in PostgreSQL, and delivers messages received from an external source (simulated as an Azure Event Hub) to active clients.
