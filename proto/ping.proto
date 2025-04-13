@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package ping;
+
+option go_package = "grpc_s_c/pkg/pingpb;pingpb";
+
+// PingService defines two RPC methods:
+//  - SendPing: Unary RPC used by a client (virtual machine) to send its status along with a JSON payload.
+//  - ListenForMessages: Server‑streaming RPC that pushes messages (with a JSON payload) to the client.
+service PingService {
+  rpc SendPing(PingRequest) returns (PingResponse);
+  rpc ListenForMessages(ListenRequest) returns (stream Message);
+}
+
+message PingRequest {
+  string ip_address = 1;       // the client's IP address
+  string json_payload = 2;     // generic JSON payload as a string
+}
+
+message PingResponse {
+  string status = 1;
+  string json_payload = 2;     // optional payload from server to client
+}
+
+message ListenRequest {
+  string ip_address = 1;
+}
+
+message Message {
+  string json_payload = 1;
+}

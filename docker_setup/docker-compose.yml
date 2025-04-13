@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  redis:
+    build: ./redis
+    ports:
+      - "6379:6379"
+    # Optionally, you can set volumes if you need data persistence or custom logging
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: myuser         # Replace with your desired username
+      POSTGRES_PASSWORD: mypassword # Replace with your desired password
+      POSTGRES_DB: mydatabase       # Replace with your desired database name
+    ports:
+      - "5432:5432"
+    # Optionally, add volumes to persist your database data:
+    # volumes:
+    #   - pgdata:/var/lib/postgresql/data
+
+# Uncomment the following if you want to use a volume for postgres data persistence.
+# volumes:
+#   pgdata:
