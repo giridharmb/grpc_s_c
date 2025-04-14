@@ -1,0 +1,52 @@
+graph LR
+    %% Clients Subgraph
+    subgraph "Clients (Virtual Machines)"
+      VM1[VM 1]
+      VM2[VM 2]
+      VM3[VM 3]
+    end
+
+    %% Kubernetes Cluster Subgraph with Ingress Load Balancer and 3 server containers
+    subgraph "Kubernetes Cluster"
+      LB[Ingress/Load Balancer]
+      subgraph "gRPC Server Containers"
+        S1[Server Container 1]
+        S2[Server Container 2]
+        S3[Server Container 3]
+      end
+    end
+
+    %% Persistent Storage & Cache Subgraph
+    subgraph "Persistent Storage & Cache"
+      PG[(PostgreSQL)]
+      R[(Redis)]
+    end
+
+    %% External Data Source Subgraph
+    subgraph "External Data Source"
+      EH[Azure Event Hub]
+    end
+
+    %% Arrows: Clients connect to the Load Balancer (inside the K8s cluster)
+    VM1 --> LB
+    VM2 --> LB
+    VM3 --> LB
+
+    %% Load Balancer routes traffic to one of the server containers
+    LB -->|gRPC: Ping Streaming JSON Payload| S1
+
+    %% External Data Source sends events to a server container
+    EH -->|External JSON Payload| S1
+
+    %% All Server Containers interact with Persistent Storage & Cache
+    S1 -->|DB: Upsert/Query| PG
+    S2 -->|DB: Upsert/Query| PG
+    S3 -->|DB: Upsert/Query| PG
+
+    S1 -->|Redis: SET/PubSub| R
+    S2 -->|Redis: SET/PubSub| R
+    S3 -->|Redis: SET/PubSub| R
+
+    %% Optional inter-container communication for coordination
+    S1 --- S2
+    S2 --- S3
