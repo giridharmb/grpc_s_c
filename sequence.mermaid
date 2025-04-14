@@ -1,0 +1,52 @@
+sequenceDiagram
+    participant VM as Client (VM)
+    participant S as gRPC Server
+    participant PG as PostgreSQL
+    participant R as Redis
+    participant EH as Event Hub
+
+    %% Client sends ping at startup
+    note over VM,S: Client startup & periodic ping
+    VM->>S: SendPing(ip, JSON payload)
+    activate S
+    S->>PG: Upsert client record<br>(update lastSeen or create new record)
+    PG-->>S: Ack
+    S->>R: SET "active:<ip>"<br>TTL = 5s
+    S->>PG: Query pending messages for <ip>
+    alt Pending messages exist
+        PG-->>S: Return pending messages list
+        S->>R: Publish messages on channel<br>"client:<ip>:messages"
+        Note over S: Mark messages as delivered in PG
+    else No pending messages
+        PG-->>S: No messages
+    end
+    S-->>VM: PingResponse("pong", extra JSON)
+    deactivate S
+
+    %% Client opens streaming connection to receive messages
+    note over VM: Client opens streaming RPC for messages
+    VM->>S: ListenForMessages(ip)
+    activate S
+    S->>R: Subscribe to channel<br>"client:<ip>:messages"
+    R-->>S: Begin message stream
+    S-->>VM: Deliver message(s) via stream
+    deactivate S
+
+    %% External event handling
+    note over EH,S: External event arrives targeting a VM
+    EH->>S: External Message (JSON payload,<br>target ip included)
+    activate S
+    S->>R: EXISTS "active:<ip>"?
+    alt Client Active (key exists)
+        R-->>S: Key exists
+        S->>R: Publish external message<br>on "client:<ip>:messages"
+        S-->>EH: Acknowledge: Delivered
+    else Client Inactive
+        R-->>S: Key missing
+        S->>PG: Store external message as pending
+        S-->>EH: Acknowledge: Stored
+    end
+    deactivate S
+
+    %% Note about background tasks (attached to Server)
+    note over S: Background Tasks run:<br>• Every 5s - clean stale clients<br>• Periodically - remove pending messages older than 1 hour

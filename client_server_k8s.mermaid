@@ -1,0 +1,48 @@
+graph TD
+    subgraph "Client VMs"
+        VM1[Client VM 1]
+        VM2[Client VM 2]
+        VM3[Client VM 3]
+    end
+
+    subgraph "Kubernetes Cluster"
+        LB[Load Balancer/Service]
+
+        subgraph "Pod 1"
+            C1[gRPC Server Container 1]
+        end
+
+        subgraph "Pod 2"
+            C2[gRPC Server Container 2]
+        end
+
+        subgraph "Pod 3"
+            C3[gRPC Server Container 3]
+        end
+    end
+
+    %% Client requests
+    VM1 -->|gRPC Request| LB
+    VM2 -->|gRPC Request| LB
+    VM3 -->|gRPC Request| LB
+
+    %% Load balancer distributes traffic
+    LB -->|Route Request| C1
+    LB -->|Route Request| C2
+    LB -->|Route Request| C3
+
+    %% Responses back to clients
+    C1 -->|gRPC Response| VM1
+    C2 -->|gRPC Response| VM2
+    C3 -->|gRPC Response| VM3
+
+    %% Note: The actual routing of responses depends on which container processed which request
+
+    %% Labels for better understanding
+    classDef vm fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef lb fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    classDef container fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+
+    class VM1,VM2,VM3 vm
+    class LB lb
+    class C1,C2,C3 container

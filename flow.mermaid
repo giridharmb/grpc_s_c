@@ -7,8 +7,13 @@
   "sequenceMessageTextColor": "#2c3e50",        // Message text color: dark blue-gray
   "sequenceMessageFontSize": "14px",
   "sequenceActivateBackground": "#1abc9c",      // Activation boxes: turquoise
-  "sequenceActivateBorderColor": "#16a085"       // Activation border: darker turquoise
+  "sequenceActivateBorderColor": "#16a085",       // Activation border: darker turquoise
+
+  .mermaid .message-box, .mermaid .sequenceMessage .note {
+    padding: 20px;
+  }
 }}}%%
+
 sequenceDiagram
     participant C as Client (VM)
     participant S as gRPC Server
@@ -56,4 +61,4 @@ sequenceDiagram
     end
     deactivate S
 
-    Note over S: Background Tasks: Clean stale clients & remove old pending messages
+    Note over S: Background Tasks: Clean stale clients <br>& remove old pending messages
